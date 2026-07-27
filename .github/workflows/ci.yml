@@ -46,3 +46,11 @@ jobs:
       - run: ruff format --check .
       - run: mypy app tests
       - run: pytest
+
+  containers:
+    runs-on: ubuntu-latest
+    needs: [frontend, backend]
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose config --quiet
+      - run: docker compose build
