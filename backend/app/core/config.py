@@ -28,6 +28,14 @@ class ProviderSettings(BaseModel):
     api_key: SecretStr | None = Field(default=None, repr=False)
 
 
+class WeatherSettings(BaseModel):
+    forecast_url: str = "https://api.open-meteo.com/v1/forecast"
+    geocoding_url: str = "https://geocoding-api.open-meteo.com/v1/search"
+    cache_ttl_seconds: int = Field(default=600, ge=0)
+    cache_stale_seconds: int = Field(default=3600, ge=0)
+    search_cache_ttl_seconds: int = Field(default=86400, ge=0)
+
+
 class Settings(BaseSettings):
     app_name: str = "Morning Pulse API"
     environment: str = "development"
@@ -37,6 +45,7 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     http: HttpClientSettings = HttpClientSettings()
     rate_limit: RateLimitSettings = RateLimitSettings()
+    weather: WeatherSettings = WeatherSettings()
     providers: dict[str, ProviderSettings] = {}
 
     model_config = SettingsConfigDict(

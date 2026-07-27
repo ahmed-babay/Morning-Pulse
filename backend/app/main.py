@@ -6,11 +6,15 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.health import router as health_router
 from app.api.v1.router import router as v1_router
+from app.core.cache import AsyncTTLCache
 from app.core.config import Settings, get_settings
 from app.core.errors import install_exception_handlers
 from app.core.http import http_client_lifespan
 from app.core.logging import configure_logging
 from app.core.middleware import RateLimitMiddleware, RequestIdMiddleware
+from app.weather.client import OpenMeteoClient
+from app.weather.schemas import LocationSearchResult, Weather
+from app.weather.service import WeatherService
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -20,6 +24,19 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def lifespan(application: FastAPI) -> AsyncIterator[None]:
         async with http_client_lifespan(app_settings.http) as http:
             application.state.http = http
+            application.state.weather_service = WeatherService(
+                OpenMeteoClient(http, app_settings.weather),
+                AsyncTTLCache[Weather](
+                    max_size=256,
+                    ttl_seconds=app_settings.weather.cache_ttl_seconds,
+                    stale_seconds=app_settings.weather.cache_stale_seconds,
+                ),
+                AsyncTTLCache[list[LocationSearchResult]](
+                    max_size=128,
+                    ttl_seconds=app_settings.weather.search_cache_ttl_seconds,
+                    stale_seconds=app_settings.weather.cache_stale_seconds,
+                ),
+            )
             yield
 
     configure_logging(app_settings.log_level)
