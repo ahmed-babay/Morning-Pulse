@@ -1,19 +1,22 @@
+import { DashboardGrid } from './components/dashboard/dashboard-grid'
+import { GreetingHero } from './components/dashboard/greeting-hero'
+import { AppShell } from './components/layout/app-shell'
+import { PageTransition } from './components/layout/page-transition'
+import { RouteViewport } from './lib/router'
+
 export function App() {
   return (
-    <main className="grid min-h-screen place-items-center bg-slate-950 px-6 text-slate-100">
-      <section className="max-w-xl text-center">
-        <p className="mb-3 text-sm font-semibold uppercase tracking-[0.25em] text-amber-400">
-          Morning Pulse
-        </p>
-        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-          Your day starts here.
-        </h1>
-        <p className="mt-5 text-lg leading-8 text-slate-300">
-          The application foundation is ready. News and market insights arrive
-          in the next milestone.
-        </p>
-      </section>
-    </main>
+    <AppShell>
+      <RouteViewport>
+        <PageTransition>
+          <GreetingHero />
+          <DashboardGrid />
+          <footer className="pb-24 pt-12 text-center text-xs font-semibold text-muted lg:pb-4">
+            Morning Pulse · Designed for calmer mornings
+          </footer>
+        </PageTransition>
+      </RouteViewport>
+    </AppShell>
   )
 }
 
