@@ -4,6 +4,47 @@ import userEvent from '@testing-library/user-event'
 import { App } from './App'
 import { AppProviders } from './lib/providers'
 import { useThemeStore } from './stores/theme-store'
+import { CAIRO_LOCATION, useWeatherStore } from './stores/weather-store'
+
+const weatherResponse = {
+  data: {
+    location: {
+      ...CAIRO_LOCATION,
+      admin_area: 'Cairo',
+      timezone: 'Africa/Cairo',
+    },
+    current: {
+      temperature: 28.4,
+      apparent_temperature: 29.2,
+      humidity: 51,
+      wind_speed: 12.6,
+      weather_code: 0,
+      condition: 'Clear sky',
+      is_day: true,
+      observed_at: '2026-07-27T08:00:00',
+    },
+    hourly: [
+      {
+        time: '2026-07-27T08:00:00',
+        temperature: 28.4,
+        weather_code: 0,
+        precipitation_probability: 0,
+      },
+    ],
+    today: {
+      date: '2026-07-27',
+      temperature_max: 36,
+      temperature_min: 24,
+      sunrise: '2026-07-27T06:11:00',
+      sunset: '2026-07-27T19:50:00',
+    },
+    temperature_unit: '°C',
+    wind_speed_unit: 'km/h',
+    fetched_at: '2026-07-27T06:00:00Z',
+    stale: false,
+  },
+  request_id: 'test',
+}
 
 function renderApp() {
   return render(
@@ -16,9 +57,21 @@ function renderApp() {
 describe('App', () => {
   beforeEach(() => {
     useThemeStore.setState({ theme: 'light' })
+    useWeatherStore.setState({ location: CAIRO_LOCATION })
     document.documentElement.dataset.theme = 'light'
     window.localStorage.clear()
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify(weatherResponse), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      ),
+    )
   })
+
+  afterEach(() => vi.unstubAllGlobals())
 
   it('renders the dashboard foundation and planned domains', () => {
     renderApp()
@@ -48,5 +101,16 @@ describe('App', () => {
     )
 
     expect(document.documentElement).toHaveAttribute('data-theme', 'dark')
+  })
+
+  it('renders live normalized weather details', async () => {
+    renderApp()
+
+    expect(await screen.findByText('Clear sky')).toBeInTheDocument()
+    expect(screen.getByText('Humidity')).toBeInTheDocument()
+    expect(screen.getByText('51%')).toBeInTheDocument()
+    expect(
+      screen.getByRole('img', { name: 'Hourly temperature forecast' }),
+    ).toBeInTheDocument()
   })
 })

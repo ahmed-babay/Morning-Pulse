@@ -1,6 +1,5 @@
 import {
   CalendarDays,
-  CloudSun,
   Globe2,
   Lightbulb,
   Newspaper,
@@ -9,6 +8,7 @@ import {
 } from 'lucide-react'
 import type { PointerEvent } from 'react'
 
+import { WeatherWidget } from '../../features/weather/weather-widget'
 import { SectionHeading, StatusPill } from '../ui/primitives'
 import { CardLink, PreviewCard } from './preview-card'
 
@@ -39,34 +39,7 @@ export function DashboardGrid() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-12">
-        <PreviewCard
-          id="weather"
-          title="Weather"
-          eyebrow="Cairo"
-          icon={CloudSun}
-          delay={0.08}
-          className="min-h-72 xl:col-span-5"
-        >
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="font-display text-6xl font-extrabold tracking-[-0.06em]">
-                26°
-              </p>
-              <p className="mt-2 font-semibold">Golden and clear</p>
-              <p className="mt-1 text-sm text-muted">Feels like 27° · H 31°</p>
-            </div>
-            <div className="relative grid size-24 place-items-center rounded-full bg-[color:var(--sun)]/15">
-              <div className="size-11 rounded-full bg-[color:var(--sun)] shadow-[0_0_36px_color-mix(in_srgb,var(--sun)_65%,transparent)]" />
-            </div>
-          </div>
-          <div className="mt-7 grid grid-cols-4 gap-2 border-t border-line pt-4 text-center">
-            {['Now 26°', '10am 28°', '12pm 30°', '2pm 31°'].map((item) => (
-              <span key={item} className="text-xs font-semibold text-muted">
-                {item}
-              </span>
-            ))}
-          </div>
-        </PreviewCard>
+        <WeatherWidget />
 
         <PreviewCard
           id="markets"
