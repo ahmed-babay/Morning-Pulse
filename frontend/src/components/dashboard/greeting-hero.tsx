@@ -5,6 +5,9 @@ import { StatusPill } from '../ui/primitives'
 
 export function GreetingHero() {
   const reduceMotion = useReducedMotion()
+  const hour = new Date().getHours()
+  const greeting =
+    hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
 
   return (
     <motion.section
@@ -20,7 +23,7 @@ export function GreetingHero() {
           Your morning brief
         </StatusPill>
         <h1 className="mt-5 max-w-4xl font-display text-5xl leading-[0.98] font-extrabold tracking-[-0.055em] sm:text-6xl lg:text-[5.2rem]">
-          Good morning, <span className="text-accent italic">Ahmed.</span>
+          {greeting}, <span className="text-accent italic">Ahmed.</span>
         </h1>
         <p className="mt-5 max-w-2xl text-base leading-7 text-muted sm:text-lg">
           A calm look at what matters today—before the day gets loud.

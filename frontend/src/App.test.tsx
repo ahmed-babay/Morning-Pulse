@@ -62,12 +62,40 @@ describe('App', () => {
     window.localStorage.clear()
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue(
-        new Response(JSON.stringify(weatherResponse), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        }),
-      ),
+      vi.fn().mockImplementation((input: string | URL | Request) => {
+        const url = String(input)
+        const data = url.includes('/weather')
+          ? weatherResponse
+          : {
+              data: url.includes('/crypto')
+                ? { assets: [], top_gainers: [], attribution: 'CoinGecko' }
+                : url.includes('/currencies')
+                  ? {
+                      base: 'USD',
+                      rates: [],
+                      history: {},
+                      supported: [],
+                      attribution: 'Frankfurter',
+                    }
+                  : url.includes('/news')
+                    ? { items: [], attribution: 'RSS' }
+                    : url.includes('/holidays')
+                      ? { holidays: [], attribution: 'Nager.Date' }
+                      : {
+                          events: [],
+                          launches: [],
+                          apod: null,
+                          attribution: [],
+                        },
+              request_id: 'test',
+            }
+        return Promise.resolve(
+          new Response(JSON.stringify(data), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          }),
+        )
+      }),
     )
   })
 
@@ -77,10 +105,14 @@ describe('App', () => {
     renderApp()
 
     expect(
-      screen.getByRole('heading', { name: /good morning, ahmed/i }),
+      screen.getByRole('heading', {
+        name: /good (morning|afternoon|evening), ahmed/i,
+      }),
     ).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Weather' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Markets' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'Crypto markets' }),
+    ).toBeInTheDocument()
     expect(
       screen.getByRole('heading', { name: 'Top stories' }),
     ).toBeInTheDocument()
@@ -111,6 +143,15 @@ describe('App', () => {
     expect(screen.getByText('51%')).toBeInTheDocument()
     expect(
       screen.getByRole('img', { name: 'Hourly temperature forecast' }),
+    ).toBeInTheDocument()
+  })
+
+  it('opens command search with the keyboard shortcut', async () => {
+    const user = userEvent.setup()
+    renderApp()
+    await user.keyboard('{Control>}k{/Control}')
+    expect(
+      screen.getByRole('dialog', { name: 'Search Morning Pulse' }),
     ).toBeInTheDocument()
   })
 })

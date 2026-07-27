@@ -15,6 +15,9 @@ export function GlassCard({
   ...props
 }: GlassCardProps) {
   const reduceMotion = useReducedMotion()
+  const finePointer =
+    typeof window !== 'undefined' &&
+    (window.matchMedia?.('(hover: hover) and (pointer: fine)').matches ?? false)
 
   return (
     <motion.article
@@ -25,7 +28,7 @@ export function GlassCard({
       initial={reduceMotion ? false : { opacity: 0, y: 22 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] }}
-      whileHover={reduceMotion ? {} : { y: -4, scale: 1.006 }}
+      whileHover={reduceMotion || !finePointer ? {} : { y: -4, scale: 1.006 }}
       {...props}
     >
       <div
