@@ -1,22 +1,3 @@
-from functools import lru_cache
+from app.core.config import Settings, get_settings
 
-from pydantic_settings import BaseSettings, SettingsConfigDict
-
-
-class Settings(BaseSettings):
-    app_name: str = "Morning Pulse API"
-    environment: str = "development"
-    debug: bool = False
-    api_v1_prefix: str = "/api/v1"
-    cors_origins: list[str] = ["http://localhost:5173"]
-
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        extra="ignore",
-    )
-
-
-@lru_cache
-def get_settings() -> Settings:
-    return Settings()
+__all__ = ["Settings", "get_settings"]
