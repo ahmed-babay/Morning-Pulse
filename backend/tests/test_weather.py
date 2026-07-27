@@ -55,9 +55,7 @@ def make_service(handler: httpx.AsyncBaseTransport) -> tuple[WeatherService, Htt
     service = WeatherService(
         OpenMeteoClient(http, WeatherSettings()),
         AsyncTTLCache[Weather](max_size=8, ttl_seconds=600, stale_seconds=3600),
-        AsyncTTLCache[list[LocationSearchResult]](
-            max_size=8, ttl_seconds=600, stale_seconds=3600
-        ),
+        AsyncTTLCache[list[LocationSearchResult]](max_size=8, ttl_seconds=600, stale_seconds=3600),
     )
     return service, http
 

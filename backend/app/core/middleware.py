@@ -19,6 +19,22 @@ REQUEST_ID_HEADER: Final = "X-Request-ID"
 logger = logging.getLogger(__name__)
 
 
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next: Dispatch) -> Response:
+        response = await call_next(request)
+        response.headers.update(
+            {
+                "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+                "Referrer-Policy": "no-referrer",
+                "X-Content-Type-Options": "nosniff",
+                "X-Frame-Options": "DENY",
+            }
+        )
+        return response
+
+
 class RequestIdMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: Dispatch) -> Response:
         token = set_request_id(request.headers.get(REQUEST_ID_HEADER))

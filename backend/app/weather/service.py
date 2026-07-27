@@ -68,9 +68,7 @@ class WeatherService:
         if fresh is not None:
             return fresh.model_copy(
                 update={
-                    "location": fresh.location.model_copy(
-                        update={"name": name, "country": country}
-                    )
+                    "location": fresh.location.model_copy(update={"name": name, "country": country})
                 }
             )
 

@@ -36,6 +36,20 @@ class WeatherSettings(BaseModel):
     search_cache_ttl_seconds: int = Field(default=86400, ge=0)
 
 
+class DataProviderSettings(BaseModel):
+    coingecko_url: str = "https://api.coingecko.com/api/v3"
+    frankfurter_url: str = "https://api.frankfurter.app"
+    nager_url: str = "https://date.nager.at/api/v3"
+    usgs_url: str = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary"
+    eonet_url: str = "https://eonet.gsfc.nasa.gov/api/v3"
+    launches_url: str = "https://ll.thespacedevs.com/2.3.0"
+    apod_url: str = "https://api.nasa.gov/planetary/apod"
+    nasa_api_key: str = "DEMO_KEY"
+    cache_ttl_seconds: int = Field(default=900, ge=0)
+    cache_stale_seconds: int = Field(default=3600, ge=0)
+    max_feed_bytes: int = Field(default=1_000_000, ge=1024)
+
+
 class Settings(BaseSettings):
     app_name: str = "Morning Pulse API"
     environment: str = "development"
@@ -46,6 +60,7 @@ class Settings(BaseSettings):
     http: HttpClientSettings = HttpClientSettings()
     rate_limit: RateLimitSettings = RateLimitSettings()
     weather: WeatherSettings = WeatherSettings()
+    data: DataProviderSettings = DataProviderSettings()
     providers: dict[str, ProviderSettings] = {}
 
     model_config = SettingsConfigDict(
