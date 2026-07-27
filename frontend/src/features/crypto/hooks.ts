@@ -1,0 +1,12 @@
+import { useQuery } from '@tanstack/react-query'
+
+import { apiGet } from '../../lib/api'
+import type { CryptoBrief } from './types'
+
+export function useCrypto() {
+  return useQuery({
+    queryKey: ['crypto'],
+    queryFn: ({ signal }) => apiGet<CryptoBrief>('/crypto', signal),
+    staleTime: 5 * 60_000,
+  })
+}
