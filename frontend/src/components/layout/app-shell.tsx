@@ -1,20 +1,28 @@
 import * as Tooltip from '@radix-ui/react-tooltip'
 import {
-  Bell,
   CalendarDays,
   ChartNoAxesCombined,
   CloudSun,
   Compass,
   House,
-  Menu,
+  Search,
   Moon,
   Newspaper,
   Sun,
 } from 'lucide-react'
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 
 import { useThemeStore } from '../../stores/theme-store'
 import { AmbientBackground } from './ambient-background'
+import {
+  CommandPalette,
+  FavoritesIcon,
+  FavoritesPanel,
+  InstallPrompt,
+  NetworkStatus,
+  PullToRefresh,
+  RefreshButton,
+} from './interactions'
 import { IconButton } from '../ui/primitives'
 
 const navigation = [
@@ -74,10 +82,28 @@ function Sidebar() {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { theme, toggleTheme } = useThemeStore()
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [favoritesOpen, setFavoritesOpen] = useState(false)
+  const today = new Intl.DateTimeFormat(undefined, {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  }).format(new Date())
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
   }, [theme])
+
+  useEffect(() => {
+    const openSearch = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault()
+        setSearchOpen(true)
+      }
+    }
+    window.addEventListener('keydown', openSearch)
+    return () => window.removeEventListener('keydown', openSearch)
+  }, [])
 
   return (
     <div className="noise min-h-screen">
@@ -90,10 +116,22 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
           <div className="hidden lg:block">
             <p className="text-xs font-bold tracking-[0.16em] text-muted uppercase">
-              Monday · July 27
+              {today}
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <NetworkStatus />
+            <InstallPrompt />
+            <button
+              type="button"
+              onClick={() => setSearchOpen(true)}
+              className="hidden items-center gap-2 rounded-full border border-line bg-panel px-3 py-2 text-xs font-bold text-muted sm:flex"
+            >
+              <Search className="size-3.5" />
+              Search
+              <kbd className="rounded bg-ink/5 px-1.5 py-0.5">⌘K</kbd>
+            </button>
+            <RefreshButton />
             <Tooltip.Root>
               <Tooltip.Trigger asChild>
                 <IconButton
@@ -116,11 +154,18 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </Tooltip.Content>
               </Tooltip.Portal>
             </Tooltip.Root>
-            <IconButton label="Notifications">
-              <Bell className="size-[1.1rem]" />
+            <IconButton
+              label="Open favorites"
+              onClick={() => setFavoritesOpen(true)}
+            >
+              <FavoritesIcon className="size-[1.1rem]" />
             </IconButton>
-            <IconButton label="Open menu" className="sm:hidden">
-              <Menu className="size-[1.1rem]" />
+            <IconButton
+              label="Search"
+              className="sm:hidden"
+              onClick={() => setSearchOpen(true)}
+            >
+              <Search className="size-[1.1rem]" />
             </IconButton>
             <button
               type="button"
@@ -135,9 +180,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
-      <main id="main" className="px-4 py-8 sm:px-6 lg:ml-72 lg:px-8 lg:pt-5">
-        <div className="mx-auto max-w-[90rem]">{children}</div>
-      </main>
+      <PullToRefresh>
+        <main id="main" className="px-4 py-8 sm:px-6 lg:ml-72 lg:px-8 lg:pt-5">
+          <div className="mx-auto max-w-[90rem]">{children}</div>
+        </main>
+      </PullToRefresh>
       <nav
         aria-label="Mobile primary"
         className="glass fixed right-3 bottom-3 left-3 z-30 flex justify-around rounded-2xl px-2 py-2 lg:hidden"
@@ -156,6 +203,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           </a>
         ))}
       </nav>
+      <CommandPalette open={searchOpen} onOpenChange={setSearchOpen} />
+      <FavoritesPanel open={favoritesOpen} onOpenChange={setFavoritesOpen} />
     </div>
   )
 }

@@ -63,6 +63,9 @@ body {
   font-family: var(--font-sans);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  transition:
+    background-color 240ms ease,
+    color 240ms ease;
 }
 
 button,
@@ -84,6 +87,16 @@ a {
   background: var(--panel);
   box-shadow: var(--shadow-glass);
   backdrop-filter: blur(24px) saturate(1.25);
+  transition:
+    background-color 240ms ease,
+    border-color 240ms ease,
+    box-shadow 240ms ease;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .group:hover {
+    transform: none !important;
+  }
 }
 
 .noise::after {
