@@ -51,6 +51,13 @@ class DataProviderSettings(BaseModel):
     max_feed_bytes: int = Field(default=1_000_000, ge=1024)
 
 
+class GitHubSettings(BaseModel):
+    token: SecretStr | None = Field(default=None, repr=False)
+    api_url: str = "https://api.github.com"
+    cache_ttl_seconds: int = Field(default=60, ge=0)
+    cache_stale_seconds: int = Field(default=600, ge=0)
+
+
 class Settings(BaseSettings):
     app_name: str = "Morning Pulse API"
     environment: str = "development"
@@ -62,6 +69,7 @@ class Settings(BaseSettings):
     rate_limit: RateLimitSettings = RateLimitSettings()
     weather: WeatherSettings = WeatherSettings()
     data: DataProviderSettings = DataProviderSettings()
+    github: GitHubSettings = GitHubSettings()
     providers: dict[str, ProviderSettings] = {}
 
     model_config = SettingsConfigDict(

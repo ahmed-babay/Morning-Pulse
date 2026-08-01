@@ -24,12 +24,13 @@ class ProviderSupport:
         url: str,
         *,
         params: Mapping[str, str | int] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> Any:
         try:
             response = await self.http.get(
                 url,
                 params=params,
-                headers={"Accept": "application/json"},
+                headers={"Accept": "application/json", **(headers or {})},
             )
             response.raise_for_status()
             return response.json()
@@ -39,7 +40,6 @@ class ProviderSupport:
                 "provider_error",
                 f"{provider} is temporarily unavailable",
             ) from exc
-
 
 def as_dict(value: object) -> dict[str, Any]:
     return value if isinstance(value, dict) else {}

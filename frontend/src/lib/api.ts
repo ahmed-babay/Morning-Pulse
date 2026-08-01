@@ -4,6 +4,26 @@ interface Envelope<T> {
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '/api/v1'
 
+export class ApiClientError extends Error {
+  code: string
+
+  constructor(message: string, code: string) {
+    super(message)
+    this.name = 'ApiClientError'
+    this.code = code
+  }
+}
+
+async function parseError(response: Response): Promise<never> {
+  const payload = (await response.json().catch(() => null)) as {
+    error?: { message?: string; code?: string }
+  } | null
+  throw new ApiClientError(
+    payload?.error?.message ?? 'This update is unavailable',
+    payload?.error?.code ?? 'unknown_error',
+  )
+}
+
 export async function apiGet<T>(
   path: string,
   signal?: AbortSignal,
@@ -12,11 +32,6 @@ export async function apiGet<T>(
     headers: { Accept: 'application/json' },
     ...(signal ? { signal } : {}),
   })
-  if (!response.ok) {
-    const payload = (await response.json().catch(() => null)) as {
-      error?: { message?: string }
-    } | null
-    throw new Error(payload?.error?.message ?? 'This update is unavailable')
-  }
+  if (!response.ok) return parseError(response)
   return ((await response.json()) as Envelope<T>).data
 }

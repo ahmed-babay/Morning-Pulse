@@ -3,6 +3,7 @@ import type { PointerEvent } from 'react'
 import { CryptoWidget } from '../../features/crypto/crypto-widget'
 import { CurrencyWidget } from '../../features/currencies/currency-widget'
 import { DailyContentWidgets } from '../../features/daily-content/daily-content-widgets'
+import { GitHubWidget } from '../../features/github/github-widget'
 import { HolidayWidget } from '../../features/holidays/holiday-widget'
 import { NewsWidget } from '../../features/news/news-widget'
 import { StockWidget } from '../../features/stocks/stock-widget'
@@ -38,6 +39,7 @@ export function DashboardGrid() {
         <NewsWidget />
         <HolidayWidget />
         <WorldWidget />
+        <GitHubWidget />
         <DailyContentWidgets />
       </div>
     </section>

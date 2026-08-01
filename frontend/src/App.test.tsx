@@ -60,42 +60,73 @@ describe('App', () => {
     useWeatherStore.setState({ location: CAIRO_LOCATION })
     document.documentElement.dataset.theme = 'light'
     window.localStorage.clear()
+    const responses: [string, unknown][] = [
+      ['/weather', weatherResponse],
+      [
+        '/crypto',
+        {
+          data: { assets: [], top_gainers: [], attribution: 'CoinGecko' },
+          request_id: 'test',
+        },
+      ],
+      [
+        '/stocks',
+        {
+          data: {
+            assets: [],
+            top_gainers: [],
+            top_losers: [],
+            attribution: 'Yahoo Finance',
+          },
+          request_id: 'test',
+        },
+      ],
+      [
+        '/currencies',
+        {
+          data: {
+            base: 'USD',
+            rates: [],
+            history: {},
+            supported: [],
+            attribution: 'Frankfurter',
+          },
+          request_id: 'test',
+        },
+      ],
+      [
+        '/news',
+        { data: { items: [], attribution: 'RSS' }, request_id: 'test' },
+      ],
+      [
+        '/holidays',
+        {
+          data: { holidays: [], attribution: 'Nager.Date' },
+          request_id: 'test',
+        },
+      ],
+      [
+        '/github/notifications',
+        {
+          data: { notifications: [], unread_count: 0, attribution: 'GitHub' },
+          request_id: 'test',
+        },
+      ],
+      [
+        '/world',
+        {
+          data: { events: [], launches: [], apod: null, attribution: [] },
+          request_id: 'test',
+        },
+      ],
+    ]
+
     vi.stubGlobal(
       'fetch',
       vi.fn().mockImplementation((input: string | URL | Request) => {
         const url = String(input)
-        const data = url.includes('/weather')
-          ? weatherResponse
-          : {
-              data: url.includes('/crypto')
-                ? { assets: [], top_gainers: [], attribution: 'CoinGecko' }
-                : url.includes('/stocks')
-                  ? {
-                      assets: [],
-                      top_gainers: [],
-                      top_losers: [],
-                      attribution: 'Yahoo Finance',
-                    }
-                  : url.includes('/currencies')
-                    ? {
-                        base: 'USD',
-                        rates: [],
-                        history: {},
-                        supported: [],
-                        attribution: 'Frankfurter',
-                      }
-                    : url.includes('/news')
-                      ? { items: [], attribution: 'RSS' }
-                      : url.includes('/holidays')
-                        ? { holidays: [], attribution: 'Nager.Date' }
-                        : {
-                            events: [],
-                            launches: [],
-                            apod: null,
-                            attribution: [],
-                          },
-              request_id: 'test',
-            }
+        const match = responses.find(([fragment]) => url.includes(fragment))
+        const data = match ? match[1] : { data: {}, request_id: 'test' }
         return Promise.resolve(
           new Response(JSON.stringify(data), {
             status: 200,

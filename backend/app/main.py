@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.health import router as health_router
 from app.api.v1.router import router as v1_router
+from app.briefing.provider import ProviderSupport
 from app.briefing.service import BriefingService
 from app.core.cache import AsyncTTLCache
 from app.core.config import Settings, get_settings
@@ -13,6 +14,7 @@ from app.core.errors import install_exception_handlers
 from app.core.http import http_client_lifespan
 from app.core.logging import configure_logging
 from app.core.middleware import RateLimitMiddleware, RequestIdMiddleware, SecurityHeadersMiddleware
+from app.github.service import GitHubService
 from app.weather.client import OpenMeteoClient
 from app.weather.schemas import LocationSearchResult, Weather
 from app.weather.service import WeatherService
@@ -46,6 +48,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     ttl_seconds=app_settings.weather.search_cache_ttl_seconds,
                     stale_seconds=app_settings.weather.cache_stale_seconds,
                 ),
+            )
+            application.state.github_service = GitHubService(
+                ProviderSupport(
+                    http,
+                    AsyncTTLCache[object](
+                        max_size=16,
+                        ttl_seconds=app_settings.github.cache_ttl_seconds,
+                        stale_seconds=app_settings.github.cache_stale_seconds,
+                    ),
+                ),
+                app_settings.github,
             )
             yield
 
