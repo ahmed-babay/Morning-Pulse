@@ -64,6 +64,7 @@ class NewsItem(BaseModel):
     category: str
     published_at: datetime | None = None
     summary: str = ""
+    image: HttpUrl | None = None
 
 
 class NewsBrief(BaseModel):
@@ -118,7 +119,7 @@ class Apod(BaseModel):
 class WorldBrief(BaseModel):
     events: list[WorldEvent]
     launches: list[Launch]
-    apod: Apod | None
+    apod: list[Apod]
     attribution: list[str] = [
         "USGS",
         "NASA EONET",

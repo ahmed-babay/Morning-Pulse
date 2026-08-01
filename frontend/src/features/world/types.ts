@@ -16,14 +16,16 @@ export interface WorldBrief {
     webcast?: string
     location: string
   }[]
-  apod?: {
-    title: string
-    explanation: string
-    date: string
-    media_type: string
-    url: string
-    thumbnail_url?: string
-    copyright?: string
-  }
+  apod: Apod[]
   attribution: string[]
+}
+
+export interface Apod {
+  title: string
+  explanation: string
+  date: string
+  media_type: string
+  url: string
+  thumbnail_url?: string
+  copyright?: string
 }

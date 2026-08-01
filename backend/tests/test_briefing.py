@@ -77,6 +77,46 @@ async def test_rss_rejects_doctype_without_exposing_content() -> None:
 
 
 @pytest.mark.anyio
+async def test_rss_extracts_media_thumbnail_as_the_item_image() -> None:
+    feed = b"""<?xml version="1.0"?>
+    <rss xmlns:media="http://search.yahoo.com/mrss/">
+      <channel>
+        <title>Example Feed</title>
+        <item>
+          <title>Direct thumbnail</title>
+          <link>https://example.com/a</link>
+          <description>First story</description>
+          <media:thumbnail url="https://example.com/a-thumb.jpg" />
+        </item>
+        <item>
+          <title>Nested thumbnail</title>
+          <link>https://example.com/b</link>
+          <description>Second story</description>
+          <media:content url="https://example.com/b-full.jpg" type="image/jpeg">
+            <media:thumbnail url="https://example.com/b-thumb.jpg" />
+          </media:content>
+        </item>
+        <item>
+          <title>No image</title>
+          <link>https://example.com/c</link>
+          <description>Third story</description>
+        </item>
+      </channel>
+    </rss>"""
+    transport = httpx.MockTransport(lambda _request: httpx.Response(200, content=feed))
+    service, http = service_with(transport)
+    try:
+        result = await service.news("world", 5)
+    finally:
+        await http.aclose()
+
+    by_title = {item.title: item for item in result.items}
+    assert str(by_title["Direct thumbnail"].image) == "https://example.com/a-thumb.jpg"
+    assert str(by_title["Nested thumbnail"].image) == "https://example.com/b-thumb.jpg"
+    assert by_title["No image"].image is None
+
+
+@pytest.mark.anyio
 async def test_world_parses_launch_library_image_object() -> None:
     async def handler(request: httpx.Request) -> httpx.Response:
         if "launch" in request.url.path:
@@ -113,6 +153,42 @@ async def test_world_parses_launch_library_image_object() -> None:
     assert str(launch.image) == "https://example.com/launch.jpeg"
     assert launch.webcast is None
     assert launch.location == "Site A"
+
+
+@pytest.mark.anyio
+async def test_world_parses_apod_date_range_into_a_sorted_gallery() -> None:
+    async def handler(request: httpx.Request) -> httpx.Response:
+        if "apod" in request.url.path:
+            assert "start_date" in request.url.params
+            assert "end_date" in request.url.params
+            return httpx.Response(
+                200,
+                json=[
+                    {
+                        "title": "Older Nebula",
+                        "explanation": "An older picture",
+                        "date": "2026-07-20",
+                        "media_type": "image",
+                        "url": "https://example.com/older.jpg",
+                    },
+                    {
+                        "title": "Newer Galaxy",
+                        "explanation": "A newer picture",
+                        "date": "2026-07-27",
+                        "media_type": "image",
+                        "url": "https://example.com/newer.jpg",
+                    },
+                ],
+            )
+        return httpx.Response(200, json={})
+
+    service, http = service_with(httpx.MockTransport(handler))
+    try:
+        result = await service.world()
+    finally:
+        await http.aclose()
+
+    assert [item.title for item in result.apod] == ["Newer Galaxy", "Older Nebula"]
 
 
 @pytest.mark.anyio

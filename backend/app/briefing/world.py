@@ -1,5 +1,5 @@
 import asyncio
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 from pydantic import ValidationError
@@ -38,6 +38,8 @@ class WorldService:
                         params={
                             "api_key": self._settings.nasa_api_key,
                             "thumbs": "true",
+                            "start_date": (date.today() - timedelta(days=9)).isoformat(),
+                            "end_date": date.today().isoformat(),
                         },
                     ),
                     return_exceptions=True,
@@ -124,19 +126,25 @@ def _launches(payload: object) -> list[Launch]:
     return launches
 
 
-def _apod(payload: object) -> Apod | None:
+def _apod(payload: object) -> list[Apod]:
     if isinstance(payload, BaseException):
-        return None
-    data = as_dict(payload)
-    try:
-        return Apod(
-            title=str(data["title"]),
-            explanation=str(data["explanation"]),
-            date=date.fromisoformat(str(data["date"])),
-            media_type=str(data["media_type"]),
-            url=data["url"],
-            thumbnail_url=data.get("thumbnail_url"),
-            copyright=data.get("copyright"),
-        )
-    except (KeyError, ValidationError, ValueError):
-        return None
+        return []
+    entries = as_list(payload)
+    gallery: list[Apod] = []
+    for data in (as_dict(item) for item in entries):
+        try:
+            gallery.append(
+                Apod(
+                    title=str(data["title"]),
+                    explanation=str(data["explanation"]),
+                    date=date.fromisoformat(str(data["date"])),
+                    media_type=str(data["media_type"]),
+                    url=data["url"],
+                    thumbnail_url=data.get("thumbnail_url"),
+                    copyright=data.get("copyright"),
+                )
+            )
+        except (KeyError, ValidationError, ValueError):
+            continue
+    gallery.sort(key=lambda item: item.date, reverse=True)
+    return gallery

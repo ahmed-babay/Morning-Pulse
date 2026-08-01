@@ -83,8 +83,8 @@ async def launches(request: Request) -> DataEnvelope[list[Launch]]:
     )
 
 
-@router.get("/world/apod", response_model=DataEnvelope[Apod | None])
-async def apod(request: Request) -> DataEnvelope[Apod | None]:
+@router.get("/world/apod", response_model=DataEnvelope[list[Apod]])
+async def apod(request: Request) -> DataEnvelope[list[Apod]]:
     return DataEnvelope(
         data=(await service(request).world()).apod,
         request_id=get_request_id(),

@@ -1,8 +1,50 @@
-import { ExternalLink, Globe2, Rocket } from 'lucide-react'
+import { ExternalLink, Globe2, PlayCircle, Rocket } from 'lucide-react'
 
 import { PreviewCard } from '../../components/dashboard/preview-card'
 import { QueryState } from '../../components/dashboard/query-state'
+import { ScrollCarousel } from '../../components/ui/scroll-carousel'
 import { useWorld } from './hooks'
+import type { Apod } from './types'
+
+function ApodCard({ apod }: { apod: Apod }) {
+  return (
+    <article className="w-60 shrink-0 snap-start overflow-hidden rounded-2xl bg-ink/[0.045] sm:w-64">
+      <a
+        href={apod.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block"
+      >
+        {apod.media_type === 'image' ? (
+          <img
+            src={apod.thumbnail_url ?? apod.url}
+            alt=""
+            className="h-32 w-full object-cover"
+            loading="lazy"
+          />
+        ) : (
+          <div className="grid h-32 w-full place-items-center bg-gradient-to-br from-accent/15 to-[var(--sun)]/15">
+            <PlayCircle className="size-8 text-accent/60" aria-hidden="true" />
+          </div>
+        )}
+        <div className="p-3.5">
+          <p className="text-[0.65rem] font-bold tracking-wide text-muted uppercase">
+            {new Intl.DateTimeFormat(undefined, {
+              month: 'short',
+              day: 'numeric',
+            }).format(new Date(apod.date))}
+          </p>
+          <p className="mt-1.5 line-clamp-2 font-display text-sm font-bold leading-snug">
+            {apod.title}
+          </p>
+          <p className="mt-1.5 line-clamp-3 text-xs leading-5 text-muted">
+            {apod.explanation}
+          </p>
+        </div>
+      </a>
+    </article>
+  )
+}
 
 export function WorldWidget() {
   const query = useWorld()
@@ -81,33 +123,18 @@ export function WorldWidget() {
       </PreviewCard>
       <PreviewCard
         id="apod"
-        title={brief?.apod?.title ?? 'Astronomy picture'}
+        title="Astronomy pictures"
         eyebrow="NASA APOD"
         icon={Globe2}
         delay={0.32}
         className="xl:col-span-7"
       >
-        <QueryState {...queryState} empty={!brief?.apod}>
-          {brief?.apod && (
-            <div className="grid gap-4 sm:grid-cols-[9rem_1fr]">
-              {brief.apod.media_type === 'image' && (
-                <img
-                  className="h-28 w-full rounded-xl object-cover"
-                  src={brief.apod.url}
-                  alt=""
-                  loading="lazy"
-                />
-              )}
-              <div>
-                <p className="line-clamp-4 text-sm leading-6 text-muted">
-                  {brief.apod.explanation}
-                </p>
-                <p className="mt-2 text-[0.65rem] text-muted">
-                  NASA · {brief.apod.copyright ?? 'Public imagery'}
-                </p>
-              </div>
-            </div>
-          )}
+        <QueryState {...queryState} empty={!brief?.apod.length}>
+          <ScrollCarousel>
+            {brief?.apod.map((entry) => (
+              <ApodCard key={entry.date} apod={entry} />
+            ))}
+          </ScrollCarousel>
         </QueryState>
       </PreviewCard>
     </>

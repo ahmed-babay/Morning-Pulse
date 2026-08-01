@@ -115,7 +115,7 @@ describe('App', () => {
       [
         '/world',
         {
-          data: { events: [], launches: [], apod: null, attribution: [] },
+          data: { events: [], launches: [], apod: [], attribution: [] },
           request_id: 'test',
         },
       ],

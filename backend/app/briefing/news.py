@@ -17,10 +17,11 @@ from app.core.errors import ApiError
 _FEEDS: dict[str, tuple[str, ...]] = {
     "world": ("https://feeds.bbci.co.uk/news/world/rss.xml",),
     "technology": ("https://feeds.arstechnica.com/arstechnica/technology-lab",),
-    "science": ("https://www.nasa.gov/rss/dyn/breaking_news.rss",),
+    "science": ("https://www.nasa.gov/news-release/feed/",),
     "business": ("https://feeds.bbci.co.uk/news/business/rss.xml",),
 }
 _HTML = re.compile(r"<[^>]+>")
+_MEDIA_NS = "{http://search.yahoo.com/mrss/}"
 
 
 class NewsService:
@@ -104,11 +105,47 @@ def _items(
                     category=category,
                     published_at=_feed_date(_text(node.find("pubDate"))),
                     summary=_clean(_text(node.find("description")))[:280],
+                    image=_image(node),
                 )
             )
         except ValidationError:
             continue
     return items
+
+
+def _image(node: ElementTree.Element) -> HttpUrl | None:
+    thumbnail = node.find(f"{_MEDIA_NS}thumbnail")
+    if thumbnail is not None:
+        url = _safe_https_url(thumbnail.get("url"))
+        if url is not None:
+            return url
+
+    content = node.find(f"{_MEDIA_NS}content")
+    if content is not None:
+        nested = content.find(f"{_MEDIA_NS}thumbnail")
+        if nested is not None:
+            url = _safe_https_url(nested.get("url"))
+            if url is not None:
+                return url
+        if (content.get("type") or "").startswith("image"):
+            url = _safe_https_url(content.get("url"))
+            if url is not None:
+                return url
+
+    enclosure = node.find("enclosure")
+    if enclosure is not None and (enclosure.get("type") or "").startswith("image"):
+        return _safe_https_url(enclosure.get("url"))
+
+    return None
+
+
+def _safe_https_url(value: str | None) -> HttpUrl | None:
+    if not value or urlparse(value).scheme != "https":
+        return None
+    try:
+        return HttpUrl(value)
+    except ValidationError:
+        return None
 
 
 def _text(node: ElementTree.Element | None) -> str:

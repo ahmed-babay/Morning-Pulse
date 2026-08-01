@@ -6,6 +6,7 @@ export interface NewsItem {
   category: string
   published_at?: string
   summary: string
+  image?: string
 }
 
 export interface NewsBrief {
