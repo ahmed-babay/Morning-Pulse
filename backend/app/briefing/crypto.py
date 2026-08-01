@@ -13,7 +13,7 @@ class CryptoService:
     async def get(self) -> CryptoBrief:
         async def load() -> CryptoBrief:
             assets_payload = await self._markets(
-                ids="bitcoin,ethereum",
+                ids="bitcoin,ethereum,solana,cardano",
                 order="market_cap_desc",
             )
             gainers_payload = await self._markets(

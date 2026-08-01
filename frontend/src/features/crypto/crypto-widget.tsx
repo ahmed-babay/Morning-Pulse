@@ -4,6 +4,7 @@ import { TrendingUp } from 'lucide-react'
 import { FavoriteButton } from '../../components/dashboard/favorite-button'
 import { PreviewCard } from '../../components/dashboard/preview-card'
 import { QueryState } from '../../components/dashboard/query-state'
+import { FlashValue, LiveDot } from '../../components/ui/live-value'
 import { StatusPill } from '../../components/ui/primitives'
 import { useCrypto } from './hooks'
 
@@ -54,17 +55,32 @@ export function CryptoWidget() {
         empty={!query.data?.assets.length}
         retry={() => void query.refetch()}
       >
+        <div className="mb-3 flex justify-end">
+          <LiveDot />
+        </div>
         <div className="grid gap-3 sm:grid-cols-2">
           {query.data?.assets.map((asset) => (
             <div key={asset.id} className="rounded-2xl bg-ink/[0.045] p-4">
               <div className="flex justify-between gap-3">
-                <div>
-                  <p className="text-xs font-bold text-muted">
-                    {asset.name} · {asset.symbol}
-                  </p>
-                  <p className="mt-1 font-display text-xl font-bold">
-                    ${asset.price_usd.toLocaleString()}
-                  </p>
+                <div className="flex min-w-0 items-center gap-2.5">
+                  {asset.image && (
+                    <img
+                      src={asset.image}
+                      alt=""
+                      className="size-7 shrink-0 rounded-full"
+                      loading="lazy"
+                    />
+                  )}
+                  <div className="min-w-0">
+                    <p className="truncate text-xs font-bold text-muted">
+                      {asset.name} · {asset.symbol}
+                    </p>
+                    <FlashValue value={asset.price_usd}>
+                      <p className="mt-1 font-display text-xl font-bold">
+                        ${asset.price_usd.toLocaleString()}
+                      </p>
+                    </FlashValue>
+                  </div>
                 </div>
                 <FavoriteButton
                   item={{
