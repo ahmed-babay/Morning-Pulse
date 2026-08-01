@@ -5,6 +5,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
+  envDir: fileURLToPath(new URL('..', import.meta.url)),
   plugins: [
     react(),
     tailwindcss(),
