@@ -3,9 +3,16 @@ import { Newspaper } from 'lucide-react'
 import { FavoriteButton } from '../../components/dashboard/favorite-button'
 import { PreviewCard } from '../../components/dashboard/preview-card'
 import { QueryState } from '../../components/dashboard/query-state'
+import { cn } from '../../lib/utils'
 import { useNews } from './hooks'
 
-export function NewsWidget() {
+export function NewsWidget({
+  limit = 5,
+  className,
+}: {
+  limit?: number
+  className?: string
+}) {
   const query = useNews()
   return (
     <PreviewCard
@@ -14,7 +21,7 @@ export function NewsWidget() {
       eyebrow="Curated news"
       icon={Newspaper}
       delay={0.18}
-      className="xl:col-span-6 xl:row-span-2"
+      className={cn('xl:col-span-6 xl:row-span-2', className)}
     >
       <QueryState
         pending={query.isPending}
@@ -23,7 +30,7 @@ export function NewsWidget() {
         retry={() => void query.refetch()}
       >
         <div className="space-y-1">
-          {query.data?.items.slice(0, 5).map((story, index) => (
+          {query.data?.items.slice(0, limit).map((story, index) => (
             <div
               key={story.id}
               className="group flex items-start gap-3 rounded-2xl p-3 hover:bg-ink/[0.045]"

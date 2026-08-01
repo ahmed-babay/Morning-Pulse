@@ -11,6 +11,7 @@ import {
   Sun,
 } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
+import { NavLink } from 'react-router-dom'
 
 import { useThemeStore } from '../../stores/theme-store'
 import { AmbientBackground } from './ambient-background'
@@ -26,11 +27,11 @@ import {
 import { IconButton } from '../ui/primitives'
 
 const navigation = [
-  { label: 'Overview', icon: House, active: true },
-  { label: 'Weather', icon: CloudSun },
-  { label: 'Markets', icon: ChartNoAxesCombined },
-  { label: 'News', icon: Newspaper },
-  { label: 'Events', icon: CalendarDays },
+  { label: 'Overview', icon: House, to: '/' },
+  { label: 'Weather', icon: CloudSun, to: '/weather' },
+  { label: 'Markets', icon: ChartNoAxesCombined, to: '/markets' },
+  { label: 'News', icon: Newspaper, to: '/news' },
+  { label: 'Events', icon: CalendarDays, to: '/events' },
 ]
 
 function Brand() {
@@ -53,20 +54,22 @@ function Sidebar() {
         <Brand />
       </div>
       <nav aria-label="Primary" className="mt-8 space-y-1.5">
-        {navigation.map(({ label, icon: Icon, active }) => (
-          <a
+        {navigation.map(({ label, icon: Icon, to }) => (
+          <NavLink
             key={label}
-            href={`#${label.toLowerCase()}`}
-            aria-current={active ? 'page' : undefined}
-            className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition ${
-              active
-                ? 'bg-ink text-canvas shadow-md'
-                : 'text-muted hover:bg-ink/5 hover:text-ink'
-            }`}
+            to={to}
+            end={to === '/'}
+            className={({ isActive }) =>
+              `flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition ${
+                isActive
+                  ? 'bg-ink text-canvas shadow-md'
+                  : 'text-muted hover:bg-ink/5 hover:text-ink'
+              }`
+            }
           >
             <Icon className="size-[1.1rem]" aria-hidden="true" />
             {label}
-          </a>
+          </NavLink>
         ))}
       </nav>
       <div className="mt-auto rounded-2xl bg-ink/[0.045] p-4">
@@ -189,18 +192,20 @@ export function AppShell({ children }: { children: ReactNode }) {
         aria-label="Mobile primary"
         className="glass fixed right-3 bottom-3 left-3 z-30 flex justify-around rounded-2xl px-2 py-2 lg:hidden"
       >
-        {navigation.slice(0, 5).map(({ label, icon: Icon, active }) => (
-          <a
+        {navigation.map(({ label, icon: Icon, to }) => (
+          <NavLink
             key={label}
-            href={`#${label.toLowerCase()}`}
+            to={to}
+            end={to === '/'}
             aria-label={label}
-            aria-current={active ? 'page' : undefined}
-            className={`grid size-11 place-items-center rounded-xl ${
-              active ? 'bg-ink text-canvas' : 'text-muted'
-            }`}
+            className={({ isActive }) =>
+              `grid size-11 place-items-center rounded-xl ${
+                isActive ? 'bg-ink text-canvas' : 'text-muted'
+              }`
+            }
           >
             <Icon className="size-5" aria-hidden="true" />
-          </a>
+          </NavLink>
         ))}
       </nav>
       <CommandPalette open={searchOpen} onOpenChange={setSearchOpen} />

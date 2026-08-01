@@ -25,6 +25,7 @@ import {
   Skeleton,
   StatusPill,
 } from '../../components/ui/primitives'
+import { cn } from '../../lib/utils'
 import { useWeatherStore } from '../../stores/weather-store'
 import { useWeather } from './hooks'
 import { LocationPicker } from './location-picker'
@@ -152,14 +153,18 @@ function WeatherSkeleton() {
   )
 }
 
-export function WeatherWidget() {
+export function WeatherWidget({ className }: { className?: string }) {
   const [pickerOpen, setPickerOpen] = useState(false)
   const location = useWeatherStore((state) => state.location)
   const setLocation = useWeatherStore((state) => state.setLocation)
   const weather = useWeather(location)
 
   return (
-    <GlassCard id="weather" delay={0.08} className="min-h-96 xl:col-span-5">
+    <GlassCard
+      id="weather"
+      delay={0.08}
+      className={cn('min-h-96 xl:col-span-5', className)}
+    >
       <CardHeader
         title="Weather"
         eyebrow={`${location.name}${location.country ? ` · ${location.country}` : ''}`}

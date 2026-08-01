@@ -80,11 +80,11 @@ export function CommandPalette({
   const favorites = useFavoritesStore((state) => state.favorites)
   const commands = useMemo(
     () => [
-      ...sections.map(([id, label]) => ({ id, label, href: `#${id}` })),
+      ...sections.map(([id, label]) => ({ id, label, href: `/#${id}` })),
       ...favorites.map((item) => ({
         id: item.id,
         label: item.title,
-        href: item.url ?? `#${item.kind}`,
+        href: item.url ?? `/#${item.kind}`,
       })),
     ],
     [favorites],
@@ -145,7 +145,7 @@ export function FavoritesPanel({
             className="flex items-start justify-between gap-3 rounded-2xl bg-ink/[0.045] p-3"
           >
             <a
-              href={item.url ?? `#${item.kind}`}
+              href={item.url ?? `/#${item.kind}`}
               target={item.url ? '_blank' : undefined}
               rel={item.url ? 'noopener noreferrer' : undefined}
               className="min-w-0 text-sm font-bold"
