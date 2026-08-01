@@ -99,22 +99,28 @@ def _launches(payload: object) -> list[Launch]:
     for item in as_list(as_dict(payload).get("results"))[:5]:
         pad = as_dict(item.get("pad"))
         location = as_dict(pad.get("location"))
-        webcast = item.get("webcast_live") or item.get("vidURLs")
-        if isinstance(webcast, list):
-            webcast = as_dict(webcast[0]).get("url") if webcast else None
-        launches.append(
-            Launch(
-                id=str(item["id"]),
-                name=str(item["name"]),
-                status=str(as_dict(item.get("status")).get("name", "Scheduled")),
-                window_start=datetime.fromisoformat(
-                    str(item["window_start"]).replace("Z", "+00:00")
-                ),
-                image=item.get("image"),
-                webcast=webcast,
-                location=str(location.get("name") or pad.get("name") or ""),
-            )
+        image = item.get("image")
+        image_url = as_dict(image).get("image_url") if isinstance(image, dict) else image
+        vid_urls = item.get("vidURLs")
+        webcast = (
+            as_dict(vid_urls[0]).get("url") if isinstance(vid_urls, list) and vid_urls else None
         )
+        try:
+            launches.append(
+                Launch(
+                    id=str(item["id"]),
+                    name=str(item["name"]),
+                    status=str(as_dict(item.get("status")).get("name", "Scheduled")),
+                    window_start=datetime.fromisoformat(
+                        str(item["window_start"]).replace("Z", "+00:00")
+                    ),
+                    image=image_url,
+                    webcast=webcast,
+                    location=str(location.get("name") or pad.get("name") or ""),
+                )
+            )
+        except (KeyError, ValidationError, ValueError):
+            continue
     return launches
 
 

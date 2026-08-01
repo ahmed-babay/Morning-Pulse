@@ -77,6 +77,45 @@ async def test_rss_rejects_doctype_without_exposing_content() -> None:
 
 
 @pytest.mark.anyio
+async def test_world_parses_launch_library_image_object() -> None:
+    async def handler(request: httpx.Request) -> httpx.Response:
+        if "launch" in request.url.path:
+            return httpx.Response(
+                200,
+                json={
+                    "results": [
+                        {
+                            "id": 2617,
+                            "name": "CZ-7A Launch",
+                            "status": {"name": "Go for Launch"},
+                            "window_start": "2026-07-29T11:42:00Z",
+                            "image": {
+                                "image_url": "https://example.com/launch.jpeg",
+                                "thumbnail_url": "https://example.com/thumb.jpeg",
+                            },
+                            "webcast_live": False,
+                            "vidURLs": None,
+                            "pad": {"name": "Pad 1", "location": {"name": "Site A"}},
+                        }
+                    ]
+                },
+            )
+        return httpx.Response(200, json={})
+
+    service, http = service_with(httpx.MockTransport(handler))
+    try:
+        result = await service.world()
+    finally:
+        await http.aclose()
+
+    assert len(result.launches) == 1
+    launch = result.launches[0]
+    assert str(launch.image) == "https://example.com/launch.jpeg"
+    assert launch.webcast is None
+    assert launch.location == "Site A"
+
+
+@pytest.mark.anyio
 async def test_briefing_endpoint_uses_normalized_envelope() -> None:
     async def handler(_request: httpx.Request) -> httpx.Response:
         return httpx.Response(
