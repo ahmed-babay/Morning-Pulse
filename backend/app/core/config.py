@@ -38,7 +38,7 @@ class WeatherSettings(BaseModel):
 
 class DataProviderSettings(BaseModel):
     coingecko_url: str = "https://api.coingecko.com/api/v3"
-    frankfurter_url: str = "https://api.frankfurter.app"
+    frankfurter_url: str = "https://api.frankfurter.dev/v1"
     nager_url: str = "https://date.nager.at/api/v3"
     usgs_url: str = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary"
     eonet_url: str = "https://eonet.gsfc.nasa.gov/api/v3"
