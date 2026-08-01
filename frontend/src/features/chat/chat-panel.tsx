@@ -16,6 +16,7 @@ import { useEffect, useRef, useState } from 'react'
 import { IconButton } from '../../components/ui/primitives'
 import { ApiClientError } from '../../lib/api'
 import { useChatStream } from './hooks'
+import { Markdown } from './markdown'
 import type { ChatMessage } from './types'
 
 const SUGGESTIONS = [
@@ -82,6 +83,44 @@ function StreamingCursor() {
   )
 }
 
+type AssistantState = 'idle' | 'thinking' | 'answering'
+
+function AssistantAvatar({ state }: { state: AssistantState }) {
+  const active = state !== 'idle'
+  const ringDuration = state === 'thinking' ? 3.2 : 1.5
+  const pulseDuration = state === 'thinking' ? 1.8 : 0.9
+  return (
+    <div className="relative mt-0.5 grid size-7 shrink-0 place-items-center">
+      {active && (
+        <motion.div
+          className="absolute inset-0 rounded-full"
+          style={{
+            background:
+              'repeating-conic-gradient(color-mix(in srgb, var(--accent) 50%, transparent) 0deg 12deg, transparent 12deg 30deg)',
+          }}
+          animate={{ rotate: 360 }}
+          transition={{
+            repeat: Infinity,
+            duration: ringDuration,
+            ease: 'linear',
+          }}
+        />
+      )}
+      <motion.span
+        className="relative grid size-6 place-items-center rounded-full bg-gradient-to-br from-accent/25 to-[var(--sun)]/25 text-accent-strong"
+        animate={active ? { scale: [1, 1.12, 1] } : { scale: 1 }}
+        transition={
+          active
+            ? { repeat: Infinity, duration: pulseDuration, ease: 'easeInOut' }
+            : { duration: 0.2 }
+        }
+      >
+        <Bot className="size-3.5" aria-hidden="true" />
+      </motion.span>
+    </div>
+  )
+}
+
 function Bubble({
   message,
   streaming,
@@ -90,6 +129,11 @@ function Bubble({
   streaming?: boolean
 }) {
   const isUser = message.role === 'user'
+  const assistantState: AssistantState = !streaming
+    ? 'idle'
+    : message.content
+      ? 'answering'
+      : 'thinking'
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -97,32 +141,34 @@ function Bubble({
       transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
       className={`flex gap-2.5 ${isUser ? 'flex-row-reverse' : ''}`}
     >
-      <span
-        className={`mt-0.5 grid size-7 shrink-0 place-items-center rounded-full ${
-          isUser
-            ? 'bg-accent text-white'
-            : 'bg-gradient-to-br from-accent/25 to-[var(--sun)]/25 text-accent-strong'
-        }`}
-      >
-        {isUser ? (
+      {isUser ? (
+        <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full bg-accent text-white">
           <User className="size-3.5" aria-hidden="true" />
-        ) : (
-          <Bot className="size-3.5" aria-hidden="true" />
-        )}
-      </span>
+        </span>
+      ) : (
+        <AssistantAvatar state={assistantState} />
+      )}
       {!isUser && streaming && !message.content ? (
         <div className="rounded-2xl bg-ink/[0.045] px-1">
           <TypingDots />
         </div>
       ) : (
-        <p
-          className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm leading-6 whitespace-pre-wrap ${
-            isUser ? 'bg-accent text-white' : 'bg-ink/[0.045]'
+        <div
+          className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm leading-6 ${
+            isUser
+              ? 'bg-accent whitespace-pre-wrap text-white'
+              : 'bg-ink/[0.045]'
           }`}
         >
-          {message.content}
-          {!isUser && streaming && <StreamingCursor />}
-        </p>
+          {isUser ? (
+            message.content
+          ) : (
+            <>
+              <Markdown text={message.content} />
+              {streaming && <StreamingCursor />}
+            </>
+          )}
+        </div>
       )}
     </motion.div>
   )
