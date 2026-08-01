@@ -36,17 +36,25 @@ export async function apiGet<T>(
   return ((await response.json()) as Envelope<T>).data
 }
 
-export async function apiPost<T>(
+export async function apiPostStream(
   path: string,
   body: unknown,
+  onChunk: (chunk: string) => void,
   signal?: AbortSignal,
-): Promise<T> {
+): Promise<void> {
   const response = await fetch(`${API_BASE}${path}`, {
     method: 'POST',
-    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+    headers: { Accept: 'text/plain', 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
     ...(signal ? { signal } : {}),
   })
   if (!response.ok) return parseError(response)
-  return ((await response.json()) as Envelope<T>).data
+  const reader = response.body?.getReader()
+  if (!reader) return
+  const decoder = new TextDecoder()
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) break
+    onChunk(decoder.decode(value, { stream: true }))
+  }
 }

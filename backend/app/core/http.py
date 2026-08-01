@@ -1,6 +1,6 @@
 import asyncio
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
+from contextlib import AbstractAsyncContextManager, asynccontextmanager
 from typing import Any
 
 import httpx
@@ -22,6 +22,11 @@ class HttpClient:
 
     async def post(self, url: str, **kwargs: Any) -> httpx.Response:
         return await self._request("POST", url, **kwargs)
+
+    def stream(
+        self, method: str, url: str, **kwargs: Any
+    ) -> AbstractAsyncContextManager[httpx.Response]:
+        return self._client.stream(method, url, **kwargs)
 
     async def _request(self, method: str, url: str, **kwargs: Any) -> httpx.Response:
         attempts = self._settings.retry_attempts

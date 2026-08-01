@@ -1,5 +1,11 @@
+import json
+from collections.abc import AsyncIterator
+from typing import Any
+
+from pydantic import SecretStr
+
 from app.briefing.provider import ProviderSupport, as_dict, as_list
-from app.chat.schemas import ChatReply, ChatRequest
+from app.chat.schemas import ChatRequest
 from app.core.config import ChatSettings
 from app.core.errors import ApiError
 
@@ -15,7 +21,24 @@ class ChatService:
         self._provider = provider
         self._settings = settings
 
-    async def reply(self, request: ChatRequest) -> ChatReply:
+    async def stream_reply(self, request: ChatRequest) -> AsyncIterator[str]:
+        """Validate synchronously, then return an unstarted generator to stream.
+
+        Keeping validation outside the generator body means an invalid request
+        raises ApiError before any StreamingResponse (and its 200 status) is
+        committed to the client.
+        """
+        api_key = self._validate(request)
+        contents = [
+            {
+                "role": "model" if message.role == "assistant" else "user",
+                "parts": [{"text": message.content}],
+            }
+            for message in request.messages
+        ]
+        return self._stream(contents, api_key)
+
+    def _validate(self, request: ChatRequest) -> SecretStr:
         api_key = self._settings.gemini_api_key
         if api_key is None:
             raise ApiError(424, "chat_not_configured", "Connect a Gemini API key to enable chat")
@@ -26,27 +49,34 @@ class ChatService:
         for message in request.messages:
             if len(message.content) > self._settings.max_message_chars:
                 raise ApiError(422, "message_too_long", "A message is too long")
+        return api_key
 
-        contents = [
-            {
-                "role": "model" if message.role == "assistant" else "user",
-                "parts": [{"text": message.content}],
-            }
-            for message in request.messages
-        ]
-        payload = await self._provider.post_json(
-            "Gemini",
-            f"{self._settings.gemini_url}/models/{self._settings.gemini_model}:generateContent",
-            json_body={
-                "contents": contents,
-                "systemInstruction": {"parts": [{"text": _SYSTEM_INSTRUCTION}]},
-            },
-            headers={"x-goog-api-key": api_key.get_secret_value()},
-        )
-        text = _extract_text(payload)
-        if text is None:
-            raise ApiError(502, "chat_provider_error", "Chat is temporarily unavailable")
-        return ChatReply(reply=text, model=self._settings.gemini_model)
+    async def _stream(
+        self, contents: list[dict[str, Any]], api_key: SecretStr
+    ) -> AsyncIterator[str]:
+        model = self._settings.gemini_model
+        url = f"{self._settings.gemini_url}/models/{model}:streamGenerateContent"
+        headers = {
+            "x-goog-api-key": api_key.get_secret_value(),
+            "Content-Type": "application/json",
+        }
+        body = {
+            "contents": contents,
+            "systemInstruction": {"parts": [{"text": _SYSTEM_INSTRUCTION}]},
+        }
+        async with self._provider.http.stream(
+            "POST", url, params={"alt": "sse"}, json=body, headers=headers
+        ) as response:
+            async for line in response.aiter_lines():
+                if not line.startswith("data: "):
+                    continue
+                try:
+                    payload = json.loads(line[len("data: ") :])
+                except ValueError:
+                    continue
+                text = _extract_text(payload)
+                if text:
+                    yield text
 
 
 def _extract_text(payload: object) -> str | None:

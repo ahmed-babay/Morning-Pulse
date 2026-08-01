@@ -10,8 +10,3 @@ class ChatMessage(BaseModel):
 
 class ChatRequest(BaseModel):
     messages: list[ChatMessage]
-
-
-class ChatReply(BaseModel):
-    reply: str
-    model: str
