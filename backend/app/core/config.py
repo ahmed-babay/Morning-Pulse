@@ -61,7 +61,7 @@ class GitHubSettings(BaseModel):
 class ChatSettings(BaseModel):
     gemini_api_key: SecretStr | None = Field(default=None, repr=False)
     gemini_url: str = "https://generativelanguage.googleapis.com/v1beta"
-    gemini_model: str = "gemini-2.5-flash"
+    gemini_model: str = "gemini-flash-latest"
     max_messages: int = Field(default=20, ge=1)
     max_message_chars: int = Field(default=4000, ge=1)
 
