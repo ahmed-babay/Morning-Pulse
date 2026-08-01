@@ -2,6 +2,9 @@ services:
   backend:
     build:
       context: ./backend
+    env_file:
+      - path: .env
+        required: false
     environment:
       APP_NAME: ${APP_NAME:-Morning Pulse API}
       ENVIRONMENT: ${ENVIRONMENT:-development}

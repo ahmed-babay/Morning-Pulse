@@ -41,6 +41,31 @@ class ProviderSupport:
                 f"{provider} is temporarily unavailable",
             ) from exc
 
+    async def post_json(
+        self,
+        provider: str,
+        url: str,
+        *,
+        json_body: Mapping[str, Any],
+        headers: Mapping[str, str] | None = None,
+    ) -> Any:
+        request_headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            **(headers or {}),
+        }
+        try:
+            response = await self.http.post(url, json=json_body, headers=request_headers)
+            response.raise_for_status()
+            return response.json()
+        except (httpx.HTTPError, ValueError) as exc:
+            raise ApiError(
+                502,
+                "provider_error",
+                f"{provider} is temporarily unavailable",
+            ) from exc
+
+
 def as_dict(value: object) -> dict[str, Any]:
     return value if isinstance(value, dict) else {}
 

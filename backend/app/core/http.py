@@ -11,17 +11,23 @@ _RETRYABLE_STATUS_CODES = frozenset({429, 500, 502, 503, 504})
 
 
 class HttpClient:
-    """Application-scoped HTTP client with conservative GET retries."""
+    """Application-scoped HTTP client with conservative retries."""
 
     def __init__(self, client: httpx.AsyncClient, settings: HttpClientSettings) -> None:
         self._client = client
         self._settings = settings
 
     async def get(self, url: str, **kwargs: Any) -> httpx.Response:
+        return await self._request("GET", url, **kwargs)
+
+    async def post(self, url: str, **kwargs: Any) -> httpx.Response:
+        return await self._request("POST", url, **kwargs)
+
+    async def _request(self, method: str, url: str, **kwargs: Any) -> httpx.Response:
         attempts = self._settings.retry_attempts
         for attempt in range(attempts):
             try:
-                response = await self._client.get(url, **kwargs)
+                response = await self._client.request(method, url, **kwargs)
             except (httpx.ConnectError, httpx.ConnectTimeout, httpx.ReadTimeout):
                 if attempt + 1 == attempts:
                     raise

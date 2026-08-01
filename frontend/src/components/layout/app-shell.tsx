@@ -13,6 +13,7 @@ import {
 import { useEffect, useState, type ReactNode } from 'react'
 import { NavLink } from 'react-router-dom'
 
+import { ChatLauncher, ChatPanel } from '../../features/chat/chat-panel'
 import { useThemeStore } from '../../stores/theme-store'
 import { AmbientBackground } from './ambient-background'
 import {
@@ -87,6 +88,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { theme, toggleTheme } = useThemeStore()
   const [searchOpen, setSearchOpen] = useState(false)
   const [favoritesOpen, setFavoritesOpen] = useState(false)
+  const [chatOpen, setChatOpen] = useState(false)
   const today = new Intl.DateTimeFormat(undefined, {
     weekday: 'long',
     month: 'long',
@@ -210,6 +212,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       </nav>
       <CommandPalette open={searchOpen} onOpenChange={setSearchOpen} />
       <FavoritesPanel open={favoritesOpen} onOpenChange={setFavoritesOpen} />
+      <ChatLauncher onClick={() => setChatOpen(true)} />
+      <ChatPanel open={chatOpen} onOpenChange={setChatOpen} />
     </div>
   )
 }

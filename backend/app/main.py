@@ -8,6 +8,7 @@ from app.api.v1.health import router as health_router
 from app.api.v1.router import router as v1_router
 from app.briefing.provider import ProviderSupport
 from app.briefing.service import BriefingService
+from app.chat.service import ChatService
 from app.core.cache import AsyncTTLCache
 from app.core.config import Settings, get_settings
 from app.core.errors import install_exception_handlers
@@ -60,6 +61,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 ),
                 app_settings.github,
             )
+            application.state.chat_service = ChatService(
+                ProviderSupport(http, AsyncTTLCache[object](max_size=1, ttl_seconds=0)),
+                app_settings.chat,
+            )
             yield
 
     configure_logging(app_settings.log_level)
@@ -75,7 +80,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         CORSMiddleware,
         allow_origins=app_settings.cors_origins,
         allow_credentials=False,
-        allow_methods=["GET", "OPTIONS"],
+        allow_methods=["GET", "POST", "OPTIONS"],
         allow_headers=["Accept", "Content-Type", "X-Client-ID", "X-Request-ID"],
     )
     application.add_middleware(SecurityHeadersMiddleware)

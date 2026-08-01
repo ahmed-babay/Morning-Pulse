@@ -35,3 +35,18 @@ export async function apiGet<T>(
   if (!response.ok) return parseError(response)
   return ((await response.json()) as Envelope<T>).data
 }
+
+export async function apiPost<T>(
+  path: string,
+  body: unknown,
+  signal?: AbortSignal,
+): Promise<T> {
+  const response = await fetch(`${API_BASE}${path}`, {
+    method: 'POST',
+    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+    ...(signal ? { signal } : {}),
+  })
+  if (!response.ok) return parseError(response)
+  return ((await response.json()) as Envelope<T>).data
+}

@@ -58,6 +58,14 @@ class GitHubSettings(BaseModel):
     cache_stale_seconds: int = Field(default=600, ge=0)
 
 
+class ChatSettings(BaseModel):
+    gemini_api_key: SecretStr | None = Field(default=None, repr=False)
+    gemini_url: str = "https://generativelanguage.googleapis.com/v1beta"
+    gemini_model: str = "gemini-2.5-flash"
+    max_messages: int = Field(default=20, ge=1)
+    max_message_chars: int = Field(default=4000, ge=1)
+
+
 class Settings(BaseSettings):
     app_name: str = "Morning Pulse API"
     environment: str = "development"
@@ -70,6 +78,7 @@ class Settings(BaseSettings):
     weather: WeatherSettings = WeatherSettings()
     data: DataProviderSettings = DataProviderSettings()
     github: GitHubSettings = GitHubSettings()
+    chat: ChatSettings = ChatSettings()
     providers: dict[str, ProviderSettings] = {}
 
     model_config = SettingsConfigDict(
