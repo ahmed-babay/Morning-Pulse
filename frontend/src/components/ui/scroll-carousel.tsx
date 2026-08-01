@@ -60,22 +60,26 @@ export function ScrollCarousel({
         />
       )}
       {canScrollLeft && (
-        <IconButton
-          label="Scroll left"
-          className="absolute top-1/2 left-1 size-8 -translate-y-1/2 shadow-md"
-          onClick={() => scrollBy(-1)}
-        >
-          <ChevronLeft className="size-4" />
-        </IconButton>
+        <div className="absolute inset-y-0 left-1 flex items-center">
+          <IconButton
+            label="Scroll left"
+            className="size-8 shadow-md"
+            onClick={() => scrollBy(-1)}
+          >
+            <ChevronLeft className="size-4" />
+          </IconButton>
+        </div>
       )}
       {canScrollRight && (
-        <IconButton
-          label="Scroll right"
-          className="absolute top-1/2 right-1 size-8 -translate-y-1/2 shadow-md"
-          onClick={() => scrollBy(1)}
-        >
-          <ChevronRight className="size-4" />
-        </IconButton>
+        <div className="absolute inset-y-0 right-1 flex items-center">
+          <IconButton
+            label="Scroll right"
+            className="size-8 shadow-md"
+            onClick={() => scrollBy(1)}
+          >
+            <ChevronRight className="size-4" />
+          </IconButton>
+        </div>
       )}
     </div>
   )
