@@ -11,8 +11,10 @@ from app.briefing.schemas import (
     CurrencyBrief,
     HolidayBrief,
     NewsBrief,
+    StockBrief,
     WorldBrief,
 )
+from app.briefing.stocks import StockService
 from app.briefing.world import WorldService
 from app.core.cache import AsyncTTLCache
 from app.core.config import DataProviderSettings
@@ -32,6 +34,7 @@ class BriefingService:
     ) -> None:
         provider = ProviderSupport(http, cache)
         self._crypto = CryptoService(provider, settings)
+        self._stocks = StockService(provider, settings)
         self._currencies = CurrencyService(provider, settings)
         self._news = NewsService(provider, settings)
         self._holidays = HolidayService(provider, settings)
@@ -39,6 +42,9 @@ class BriefingService:
 
     async def crypto(self) -> CryptoBrief:
         return await self._crypto.get()
+
+    async def stocks(self) -> StockBrief:
+        return await self._stocks.get()
 
     async def currencies(
         self,

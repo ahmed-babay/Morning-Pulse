@@ -5,6 +5,7 @@ import { CurrencyWidget } from '../../features/currencies/currency-widget'
 import { DailyContentWidgets } from '../../features/daily-content/daily-content-widgets'
 import { HolidayWidget } from '../../features/holidays/holiday-widget'
 import { NewsWidget } from '../../features/news/news-widget'
+import { StockWidget } from '../../features/stocks/stock-widget'
 import { WeatherWidget } from '../../features/weather/weather-widget'
 import { WorldWidget } from '../../features/world/world-widget'
 import { SectionHeading } from '../ui/primitives'
@@ -32,6 +33,7 @@ export function DashboardGrid() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-12">
         <WeatherWidget />
         <CryptoWidget />
+        <StockWidget />
         <CurrencyWidget />
         <NewsWidget />
         <HolidayWidget />

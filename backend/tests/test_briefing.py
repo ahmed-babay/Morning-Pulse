@@ -116,6 +116,31 @@ async def test_world_parses_launch_library_image_object() -> None:
 
 
 @pytest.mark.anyio
+async def test_stocks_ranks_gainers_and_losers() -> None:
+    async def handler(_request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={
+                "AAPL": {"previousClose": 100.0, "close": [100.0, 105.0, 110.0]},
+                "MSFT": {"previousClose": 200.0, "close": [200.0, 190.0, 180.0]},
+            },
+        )
+
+    service, http = service_with(httpx.MockTransport(handler))
+    try:
+        result = await service.stocks()
+    finally:
+        await http.aclose()
+
+    assert {asset.symbol for asset in result.assets} == {"AAPL", "MSFT"}
+    assert result.top_gainers[0].symbol == "AAPL"
+    assert result.top_losers[0].symbol == "MSFT"
+    aapl = next(asset for asset in result.assets if asset.symbol == "AAPL")
+    assert aapl.price_usd == 110.0
+    assert aapl.change_pct == pytest.approx(10.0)
+
+
+@pytest.mark.anyio
 async def test_briefing_endpoint_uses_normalized_envelope() -> None:
     async def handler(_request: httpx.Request) -> httpx.Response:
         return httpx.Response(

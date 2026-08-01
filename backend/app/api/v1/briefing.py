@@ -10,6 +10,7 @@ from app.briefing.schemas import (
     HolidayBrief,
     Launch,
     NewsBrief,
+    StockBrief,
     WorldBrief,
 )
 from app.briefing.service import BriefingService, currency_window
@@ -26,6 +27,11 @@ def service(request: Request) -> BriefingService:
 @router.get("/crypto", response_model=DataEnvelope[CryptoBrief])
 async def crypto(request: Request) -> DataEnvelope[CryptoBrief]:
     return DataEnvelope(data=await service(request).crypto(), request_id=get_request_id())
+
+
+@router.get("/stocks", response_model=DataEnvelope[StockBrief])
+async def stocks(request: Request) -> DataEnvelope[StockBrief]:
+    return DataEnvelope(data=await service(request).stocks(), request_id=get_request_id())
 
 
 @router.get("/currencies", response_model=DataEnvelope[CurrencyBrief])

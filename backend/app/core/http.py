@@ -52,7 +52,13 @@ def build_http_client(
         max_connections=settings.max_connections,
         max_keepalive_connections=settings.max_keepalive_connections,
     )
-    client = httpx.AsyncClient(timeout=timeout, limits=limits, transport=transport)
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+            "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+        )
+    }
+    client = httpx.AsyncClient(timeout=timeout, limits=limits, headers=headers, transport=transport)
     return HttpClient(client, settings)
 
 

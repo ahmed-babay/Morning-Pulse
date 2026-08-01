@@ -69,24 +69,31 @@ describe('App', () => {
           : {
               data: url.includes('/crypto')
                 ? { assets: [], top_gainers: [], attribution: 'CoinGecko' }
-                : url.includes('/currencies')
+                : url.includes('/stocks')
                   ? {
-                      base: 'USD',
-                      rates: [],
-                      history: {},
-                      supported: [],
-                      attribution: 'Frankfurter',
+                      assets: [],
+                      top_gainers: [],
+                      top_losers: [],
+                      attribution: 'Yahoo Finance',
                     }
-                  : url.includes('/news')
-                    ? { items: [], attribution: 'RSS' }
-                    : url.includes('/holidays')
-                      ? { holidays: [], attribution: 'Nager.Date' }
-                      : {
-                          events: [],
-                          launches: [],
-                          apod: null,
-                          attribution: [],
-                        },
+                  : url.includes('/currencies')
+                    ? {
+                        base: 'USD',
+                        rates: [],
+                        history: {},
+                        supported: [],
+                        attribution: 'Frankfurter',
+                      }
+                    : url.includes('/news')
+                      ? { items: [], attribution: 'RSS' }
+                      : url.includes('/holidays')
+                        ? { holidays: [], attribution: 'Nager.Date' }
+                        : {
+                            events: [],
+                            launches: [],
+                            apod: null,
+                            attribution: [],
+                          },
               request_id: 'test',
             }
         return Promise.resolve(
@@ -112,6 +119,9 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: 'Weather' })).toBeInTheDocument()
     expect(
       screen.getByRole('heading', { name: 'Crypto markets' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'Stock market' }),
     ).toBeInTheDocument()
     expect(
       screen.getByRole('heading', { name: 'Top stories' }),

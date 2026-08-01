@@ -44,6 +44,7 @@ class DataProviderSettings(BaseModel):
     eonet_url: str = "https://eonet.gsfc.nasa.gov/api/v3"
     launches_url: str = "https://ll.thespacedevs.com/2.3.0"
     apod_url: str = "https://api.nasa.gov/planetary/apod"
+    yahoo_finance_url: str = "https://query1.finance.yahoo.com"
     nasa_api_key: str = "DEMO_KEY"
     cache_ttl_seconds: int = Field(default=900, ge=0)
     cache_stale_seconds: int = Field(default=3600, ge=0)

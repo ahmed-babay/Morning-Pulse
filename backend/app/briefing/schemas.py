@@ -25,6 +25,23 @@ class CryptoBrief(BaseModel):
     attribution: str = "CoinGecko"
 
 
+class StockAsset(BaseModel):
+    id: str
+    symbol: str
+    name: str
+    image: HttpUrl | None = None
+    price_usd: float
+    change_pct: float
+    sparkline: list[float]
+
+
+class StockBrief(BaseModel):
+    assets: list[StockAsset]
+    top_gainers: list[StockAsset]
+    top_losers: list[StockAsset]
+    attribution: str = "Yahoo Finance"
+
+
 class CurrencyRate(BaseModel):
     code: str
     rate: float
