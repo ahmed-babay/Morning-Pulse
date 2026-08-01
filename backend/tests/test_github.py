@@ -67,3 +67,37 @@ async def test_notifications_normalizes_payload_and_builds_web_urls() -> None:
     notification = result.notifications[0]
     assert notification.title == "Fix flaky test"
     assert str(notification.url) == "https://github.com/octo/repo/pull/42"
+
+
+@pytest.mark.anyio
+async def test_trending_works_without_a_token() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert "authorization" not in request.headers
+        assert "created:>" in request.url.params["q"]
+        return httpx.Response(
+            200,
+            json={
+                "items": [
+                    {
+                        "id": 1,
+                        "name": "hot-repo",
+                        "full_name": "octo/hot-repo",
+                        "description": "A very hot repo",
+                        "html_url": "https://github.com/octo/hot-repo",
+                        "stargazers_count": 4200,
+                        "language": "Rust",
+                        "owner": {"avatar_url": "https://avatars.example.com/octo.png"},
+                    }
+                ]
+            },
+        )
+
+    service = service_with(httpx.MockTransport(handler), None)
+
+    result = await service.trending()
+
+    assert len(result.repositories) == 1
+    repo = result.repositories[0]
+    assert repo.full_name == "octo/hot-repo"
+    assert repo.stars == 4200
+    assert repo.language == "Rust"

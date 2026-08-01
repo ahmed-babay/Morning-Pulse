@@ -14,3 +14,19 @@ export interface GitHubBrief {
   unread_count: number
   attribution: string
 }
+
+export interface TrendingRepo {
+  id: number
+  name: string
+  full_name: string
+  description: string
+  url: string
+  stars: number
+  language?: string
+  owner_avatar?: string
+}
+
+export interface TrendingBrief {
+  repositories: TrendingRepo[]
+  attribution: string
+}

@@ -18,3 +18,19 @@ class GitHubBrief(BaseModel):
     notifications: list[GitHubNotification]
     unread_count: int
     attribution: str = "GitHub"
+
+
+class TrendingRepo(BaseModel):
+    id: int
+    name: str
+    full_name: str
+    description: str = ""
+    url: HttpUrl
+    stars: int
+    language: str | None = None
+    owner_avatar: HttpUrl | None = None
+
+
+class TrendingBrief(BaseModel):
+    repositories: list[TrendingRepo]
+    attribution: str = "GitHub"

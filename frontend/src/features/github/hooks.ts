@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { apiGet, ApiClientError } from '../../lib/api'
-import type { GitHubBrief } from './types'
+import type { GitHubBrief, TrendingBrief } from './types'
 
 export function useGitHubNotifications() {
   return useQuery({
@@ -16,5 +16,13 @@ export function useGitHubNotifications() {
         error instanceof ApiClientError &&
         error.code === 'github_not_configured'
       ) && failureCount < 2,
+  })
+}
+
+export function useGitHubTrending() {
+  return useQuery({
+    queryKey: ['github', 'trending'],
+    queryFn: ({ signal }) => apiGet<TrendingBrief>('/github/trending', signal),
+    staleTime: 30 * 60_000,
   })
 }
