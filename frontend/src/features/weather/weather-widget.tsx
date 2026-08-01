@@ -35,9 +35,25 @@ function shortTime(value: string) {
   return `${hour % 12 || 12}${hour < 12 ? 'am' : 'pm'}`
 }
 
+const STARS = [
+  { top: '18%', left: '22%', delay: 0 },
+  { top: '30%', left: '68%', delay: 0.6 },
+  { top: '58%', left: '14%', delay: 1.2 },
+  { top: '68%', left: '76%', delay: 0.3 },
+  { top: '14%', left: '52%', delay: 0.9 },
+]
+
+const RAINDROPS = [
+  { left: '30%', delay: 0 },
+  { left: '48%', delay: 0.35 },
+  { left: '64%', delay: 0.15 },
+  { left: '38%', delay: 0.55 },
+]
+
 function WeatherOrb({ code, isDay }: { code: number; isDay: boolean }) {
   const rainy = code >= 51
   const cloudy = code >= 2
+
   return (
     <div
       className="relative grid size-24 shrink-0 place-items-center overflow-hidden rounded-full"
@@ -48,6 +64,34 @@ function WeatherOrb({ code, isDay }: { code: number; isDay: boolean }) {
       }}
       aria-hidden="true"
     >
+      {!isDay &&
+        STARS.map((star, index) => (
+          <motion.span
+            key={index}
+            className="absolute size-[3px] rounded-full bg-white"
+            style={{ top: star.top, left: star.left }}
+            animate={{ opacity: [0.15, 1, 0.15] }}
+            transition={{
+              repeat: Infinity,
+              duration: 2.4,
+              delay: star.delay,
+              ease: 'easeInOut',
+            }}
+          />
+        ))}
+
+      {isDay && !cloudy && (
+        <motion.div
+          className="absolute size-20 rounded-full"
+          style={{
+            background:
+              'repeating-conic-gradient(color-mix(in srgb, var(--sun) 35%, transparent) 0deg 8deg, transparent 8deg 20deg)',
+          }}
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 22, ease: 'linear' }}
+        />
+      )}
+
       <motion.div
         className="absolute size-11 rounded-full"
         animate={{ scale: [1, 1.08, 1], opacity: [0.85, 1, 0.85] }}
@@ -59,15 +103,35 @@ function WeatherOrb({ code, isDay }: { code: number; isDay: boolean }) {
           boxShadow: '0 0 36px color-mix(in srgb, var(--sun) 65%, transparent)',
         }}
       />
+
       {(cloudy || rainy) && (
-        <Cloud
-          className="absolute right-3 bottom-4 size-11 text-[var(--panel-solid)] drop-shadow-md"
-          fill="currentColor"
-        />
+        <motion.div
+          className="absolute right-3 bottom-4"
+          animate={{ x: [0, 3, 0] }}
+          transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut' }}
+        >
+          <Cloud
+            className="size-11 text-[var(--panel-solid)] drop-shadow-md"
+            fill="currentColor"
+          />
+        </motion.div>
       )}
-      {rainy && (
-        <CloudRain className="absolute bottom-1 size-5 text-[var(--aqua)]" />
-      )}
+
+      {rainy &&
+        RAINDROPS.map((drop, index) => (
+          <motion.span
+            key={index}
+            className="absolute top-11 h-2.5 w-0.5 rounded-full bg-[var(--aqua)]"
+            style={{ left: drop.left }}
+            animate={{ y: [0, 22], opacity: [0, 1, 0] }}
+            transition={{
+              repeat: Infinity,
+              duration: 1.1,
+              delay: drop.delay,
+              ease: 'easeIn',
+            }}
+          />
+        ))}
     </div>
   )
 }
