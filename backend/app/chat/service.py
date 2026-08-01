@@ -63,6 +63,11 @@ class ChatService:
         body = {
             "contents": contents,
             "systemInstruction": {"parts": [{"text": _SYSTEM_INSTRUCTION}]},
+            # Gemini's default "thinking" budget adds ~15-20s of silent reasoning
+            # before the first visible token. This app doesn't need deep
+            # reasoning for a briefing assistant, so keep it minimal for a
+            # responsive stream.
+            "generationConfig": {"thinkingConfig": {"thinkingLevel": "minimal"}},
         }
         async with self._provider.http.stream(
             "POST", url, params={"alt": "sse"}, json=body, headers=headers
