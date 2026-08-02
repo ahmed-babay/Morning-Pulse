@@ -32,4 +32,14 @@ describe('Markdown', () => {
 
     expect(screen.getByText('**Top')).toBeInTheDocument()
   })
+
+  it('renders a markdown link as a clickable anchor', () => {
+    render(
+      <Markdown text="Read the [full article](https://example.com/a) for details." />,
+    )
+
+    const link = screen.getByRole('link', { name: 'full article' })
+    expect(link).toHaveAttribute('href', 'https://example.com/a')
+    expect(link).toHaveAttribute('target', '_blank')
+  })
 })

@@ -8,5 +8,12 @@ class ChatMessage(BaseModel):
     content: str
 
 
+class ChatLocation(BaseModel):
+    latitude: float
+    longitude: float
+    name: str = "Your location"
+
+
 class ChatRequest(BaseModel):
     messages: list[ChatMessage]
+    location: ChatLocation | None = None

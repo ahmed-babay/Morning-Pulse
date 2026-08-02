@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 
 import { ApiClientError, apiPostStream } from '../../lib/api'
+import { useWeatherStore } from '../../stores/weather-store'
 import type { ChatMessage } from './types'
 
 export function useChatStream() {
@@ -8,6 +9,7 @@ export function useChatStream() {
   const [streaming, setStreaming] = useState(false)
   const [error, setError] = useState<Error | null>(null)
   const abortRef = useRef<AbortController | null>(null)
+  const location = useWeatherStore((state) => state.location)
 
   async function send(content: string) {
     const trimmed = content.trim()
@@ -28,7 +30,7 @@ export function useChatStream() {
     try {
       await apiPostStream(
         '/chat',
-        { messages: history },
+        { messages: history, location },
         (chunk) => {
           received += chunk
           setMessages((current) => {

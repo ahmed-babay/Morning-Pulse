@@ -64,6 +64,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             application.state.chat_service = ChatService(
                 ProviderSupport(http, AsyncTTLCache[object](max_size=1, ttl_seconds=0)),
                 app_settings.chat,
+                application.state.briefing_service,
+                application.state.weather_service,
             )
             yield
 

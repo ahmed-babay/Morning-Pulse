@@ -72,7 +72,8 @@ function parseBlocks(text: string): Block[] {
   return blocks
 }
 
-const INLINE = /(\*\*[^*]+\*\*|`[^`]+`|\*[^*]+\*|_[^_]+_)/g
+const INLINE = /(\[[^\]]+\]\([^)]+\)|\*\*[^*]+\*\*|`[^`]+`|\*[^*]+\*|_[^_]+_)/g
+const LINK = /^\[([^\]]+)\]\(([^)]+)\)$/
 
 function renderInline(text: string, key: string): ReactNode[] {
   return text
@@ -80,6 +81,20 @@ function renderInline(text: string, key: string): ReactNode[] {
     .filter(Boolean)
     .map((part, index) => {
       const partKey = `${key}-${index}`
+      const link = part.match(LINK)
+      if (link) {
+        return (
+          <a
+            key={partKey}
+            href={link[2]}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-bold text-accent-strong hover:underline"
+          >
+            {link[1]}
+          </a>
+        )
+      }
       if (part.startsWith('**') && part.endsWith('**')) {
         return <strong key={partKey}>{part.slice(2, -2)}</strong>
       }

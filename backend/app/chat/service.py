@@ -5,21 +5,37 @@ from typing import Any
 from pydantic import SecretStr
 
 from app.briefing.provider import ProviderSupport, as_dict, as_list
+from app.briefing.service import BriefingService
 from app.chat.schemas import ChatRequest
+from app.chat.tools import TOOLS, ToolExecutor
 from app.core.config import ChatSettings
 from app.core.errors import ApiError
+from app.weather.service import WeatherService
 
 _SYSTEM_INSTRUCTION = (
     "You are the assistant embedded in Morning Pulse, a personal morning briefing "
     "dashboard covering weather, crypto, stocks, currencies, news, and events. "
-    "Be concise and helpful."
+    "Use the available tools to fetch real, current data before answering questions "
+    "about any of those topics - never guess or make up numbers. Be concise and helpful."
 )
+
+# One hop covers the common case (one round of tool calls, then the final
+# answer); a second is allowed for questions that need two different tools.
+_MAX_TOOL_HOPS = 2
 
 
 class ChatService:
-    def __init__(self, provider: ProviderSupport, settings: ChatSettings) -> None:
+    def __init__(
+        self,
+        provider: ProviderSupport,
+        settings: ChatSettings,
+        briefing: BriefingService,
+        weather: WeatherService,
+    ) -> None:
         self._provider = provider
         self._settings = settings
+        self._briefing = briefing
+        self._weather = weather
 
     async def stream_reply(self, request: ChatRequest) -> AsyncIterator[str]:
         """Validate synchronously, then return an unstarted generator to stream.
@@ -36,7 +52,8 @@ class ChatService:
             }
             for message in request.messages
         ]
-        return self._stream(contents, api_key)
+        tools = ToolExecutor(self._briefing, self._weather, request.location)
+        return self._stream(contents, api_key, tools)
 
     def _validate(self, request: ChatRequest) -> SecretStr:
         api_key = self._settings.gemini_api_key
@@ -52,8 +69,52 @@ class ChatService:
         return api_key
 
     async def _stream(
-        self, contents: list[dict[str, Any]], api_key: SecretStr
+        self,
+        contents: list[dict[str, Any]],
+        api_key: SecretStr,
+        tools: ToolExecutor,
     ) -> AsyncIterator[str]:
+        hops = 0
+        while True:
+            pending_calls: list[list[dict[str, Any]]] = []
+            async for parts in self._stream_once(contents, api_key):
+                if any("functionCall" in part for part in parts):
+                    pending_calls.append(parts)
+                else:
+                    for part in parts:
+                        text = part.get("text")
+                        if text:
+                            yield text
+
+            if not pending_calls or hops >= _MAX_TOOL_HOPS:
+                return
+
+            hops += 1
+            for parts in pending_calls:
+                contents.append({"role": "model", "parts": parts})
+                for part in parts:
+                    call = part.get("functionCall")
+                    if not call:
+                        continue
+                    result = await tools.call(call["name"], call.get("args") or {})
+                    contents.append(
+                        {
+                            "role": "user",
+                            "parts": [
+                                {
+                                    "functionResponse": {
+                                        "name": call["name"],
+                                        "id": call.get("id"),
+                                        "response": result,
+                                    }
+                                }
+                            ],
+                        }
+                    )
+
+    async def _stream_once(
+        self, contents: list[dict[str, Any]], api_key: SecretStr
+    ) -> AsyncIterator[list[dict[str, Any]]]:
         model = self._settings.gemini_model
         url = f"{self._settings.gemini_url}/models/{model}:streamGenerateContent"
         headers = {
@@ -63,10 +124,7 @@ class ChatService:
         body = {
             "contents": contents,
             "systemInstruction": {"parts": [{"text": _SYSTEM_INSTRUCTION}]},
-            # Gemini's default "thinking" budget adds ~15-20s of silent reasoning
-            # before the first visible token. This app doesn't need deep
-            # reasoning for a briefing assistant, so keep it minimal for a
-            # responsive stream.
+            "tools": TOOLS,
             "generationConfig": {"thinkingConfig": {"thinkingLevel": "minimal"}},
         }
         async with self._provider.http.stream(
@@ -79,18 +137,14 @@ class ChatService:
                     payload = json.loads(line[len("data: ") :])
                 except ValueError:
                     continue
-                text = _extract_text(payload)
-                if text:
-                    yield text
+                parts = _extract_parts(payload)
+                if parts:
+                    yield parts
 
 
-def _extract_text(payload: object) -> str | None:
+def _extract_parts(payload: object) -> list[dict[str, Any]]:
     candidates = as_list(as_dict(payload).get("candidates"))
     if not candidates:
-        return None
+        return []
     content = as_dict(as_dict(candidates[0]).get("content"))
-    parts = as_list(content.get("parts"))
-    if not parts:
-        return None
-    text = as_dict(parts[0]).get("text")
-    return text if isinstance(text, str) else None
+    return [as_dict(part) for part in as_list(content.get("parts"))]
