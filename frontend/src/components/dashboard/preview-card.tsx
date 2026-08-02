@@ -1,8 +1,7 @@
-import { ArrowUpRight, MoreHorizontal, type LucideIcon } from 'lucide-react'
+import { ArrowUpRight, type LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 import { CardHeader, GlassCard } from '../ui/glass-card'
-import { IconButton } from '../ui/primitives'
 
 interface PreviewCardProps {
   id: string
@@ -29,11 +28,6 @@ export function PreviewCard({
         title={title}
         eyebrow={eyebrow}
         icon={<Icon className="size-5" aria-hidden="true" />}
-        action={
-          <IconButton label={`More ${title} options`} className="size-9">
-            <MoreHorizontal className="size-4" aria-hidden="true" />
-          </IconButton>
-        }
       />
       {children}
     </GlassCard>
